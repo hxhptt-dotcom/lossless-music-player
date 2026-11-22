@@ -175,7 +175,7 @@ input, code {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(255, 175, 198, 0.42);
   border-radius: 999px;
-  padding: 0 5px 0 10px;
+  padding: 0 5px 0 16px;
   box-shadow: 0 4px 16px -8px rgba(130, 40, 75, 0.2);
   transition: border-color 0.2s, box-shadow 0.2s;
 }

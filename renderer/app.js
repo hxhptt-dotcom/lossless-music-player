@@ -97,7 +97,7 @@
   }
 
   function isUsing74520() {
-    return state.engine === 'site74520' && state.auth.authenticated;
+    return false;
   }
 
   function computeTrackKey(t) {
@@ -253,157 +253,8 @@
     }
   }
 
-  // ---------------- Engine & Optional 74520 Auth ----------------
-  function updateEnginePillUI() {
-    const pill = $('authPillBtn');
-    const txt = $('authPillText');
-    pill.classList.add('signed-in');
-    if (isUsing74520()) {
-      const name = state.auth.user?.name || state.auth.user?.username || '74520';
-      const rem = state.auth.quota?.remaining ?? '--';
-      txt.textContent = `74520 · ${name} (${rem})`;
-    } else {
-      txt.textContent = '免登无损';
-    }
-  }
-
-  async function checkSite74520AuthSilently() {
-    try {
-      const res = await api.apiRequest({ path: '/api/auth/me' });
-      if (res.ok && res.data && res.data.data && res.data.data.authenticated) {
-        state.auth.authenticated = true;
-        state.auth.user = res.data.data.user;
-        if (res.data.data.quota) state.auth.quota = res.data.data.quota;
-      } else {
-        state.auth.authenticated = false;
-        state.auth.user = null;
-        if (state.engine === 'site74520') state.engine = 'public';
-      }
-    } catch {
-      state.auth.authenticated = false;
-      if (state.engine === 'site74520') state.engine = 'public';
-    }
-    updateEnginePillUI();
-  }
-
-  function applyAuthData(d) {
-    state.auth.authenticated = Boolean(d && d.authenticated && d.user);
-    state.auth.user = (d && d.user) || null;
-    if (d && d.quota) state.auth.quota = d.quota;
-    if (state.auth.authenticated) {
-      state.engine = 'site74520';
-      api.saveSettings({ engine: 'site74520' });
-      state.discover.loaded = false;
-      loadDiscoverHome();
-      loadUserLibrary();
-    } else {
-      state.engine = 'public';
-      api.saveSettings({ engine: 'public' });
-    }
-    updateEnginePillUI();
-  }
-
-  function openEngineModal() {
-    const body = $('authModalBody');
-    const using74520 = isUsing74520();
-    const u = state.auth.user;
-    const q = state.auth.quota || {};
-
-    body.innerHTML = `
-      <div class="auth-user-box">
-        <div><strong>当前音源：</strong>${using74520 ? '74520 全网扩展源（QQ / 网易云 / 酷狗）' : '免登录公开无损源（打开即用，默认推荐）'}</div>
-        <div style="font-size:12px;color:#766c7c;margin-top:4px;">
-          ${using74520
-            ? `已登录账号：<b>${esc(u?.name || u?.username || '用户')}</b> · 今日剩余配额 <b>${q.remaining ?? '--'}</b>/${q.limit ?? 100}`
-            : '无需任何账号，直接免费听 SQ 无损 FLAC、刷热门歌单/榜单、下无损到本地。'}
-        </div>
-      </div>
-
-      <div class="quality-options">
-        <button class="q-opt-btn" id="switchPublicEngineBtn">
-          <div class="q-opt-left">
-            <strong>免登录公开无损源 ${!using74520 ? '（当前使用）' : ''}</strong>
-            <span>无需登录 · 网易云曲库 + 真无损 FLAC + 7大官方榜单</span>
-          </div>
-          <span class="tr-tag tag-sq">免登录</span>
-        </button>
-
-        ${state.auth.authenticated ? `
-          <button class="q-opt-btn" id="switch74520EngineBtn">
-            <div class="q-opt-left">
-              <strong>74520 全网扩展源 ${using74520 ? '（当前使用）' : ''}</strong>
-              <span>支持 QQ 音乐 / 网易云 / 酷狗三端搜索与云端收藏</span>
-            </div>
-            <span class="tr-tag">已登录</span>
-          </button>
-        ` : ''}
-      </div>
-
-      <div class="auth-btn-row">
-        ${state.auth.authenticated ? `
-          <button class="btn-glass btn-sm" id="modalLogoutBtn">退出 74520 账号</button>
-        ` : `
-          <button class="btn-pink btn-sm" id="modalLinuxdoBtn">登录 74520（LINUX DO）</button>
-          <button class="btn-dark btn-sm" id="modalGithubBtn">登录 74520（GitHub）</button>
-        `}
-      </div>
-    `;
-
-    $('switchPublicEngineBtn').onclick = () => {
-      state.engine = 'public';
-      api.saveSettings({ engine: 'public' });
-      state.discover.loaded = false;
-      state.discover.activeChartKey = '';
-      updateEnginePillUI();
-      loadLocalSavedLibrary();
-      loadDiscoverHome();
-      $('authModal').classList.add('hidden');
-      toast('已切换为「免登录公开无损源」', 'success');
-    };
-
-    if ($('switch74520EngineBtn')) {
-      $('switch74520EngineBtn').onclick = () => {
-        state.engine = 'site74520';
-        api.saveSettings({ engine: 'site74520' });
-        state.discover.loaded = false;
-        state.discover.activeChartKey = '';
-        updateEnginePillUI();
-        loadUserLibrary();
-        loadDiscoverHome();
-        $('authModal').classList.add('hidden');
-        toast('已切换为「74520 全网扩展源」', 'success');
-      };
-    }
-
-    if ($('modalLinuxdoBtn')) {
-      $('modalLinuxdoBtn').onclick = () => {
-        $('authModal').classList.add('hidden');
-        api.openLogin('linuxdo');
-      };
-    }
-    if ($('modalGithubBtn')) {
-      $('modalGithubBtn').onclick = () => {
-        $('authModal').classList.add('hidden');
-        api.openLogin('github');
-      };
-    }
-    if ($('modalLogoutBtn')) {
-      $('modalLogoutBtn').onclick = async () => {
-        await api.logout();
-        state.auth.authenticated = false;
-        state.auth.user = null;
-        state.engine = 'public';
-        state.discover.loaded = false;
-        updateEnginePillUI();
-        loadLocalSavedLibrary();
-        loadDiscoverHome();
-        $('authModal').classList.add('hidden');
-        toast('已退出 74520 账号并切回免登无损源', 'info');
-      };
-    }
-
-    $('authModal').classList.remove('hidden');
-  }
+  // ---------------- Local Persistent Library ----------------
+  function updateEnginePillUI() {}
 
   // ---------------- Library Sync (Local Persistent for Public / Cloud for 74520) ----------------
   function loadLocalSavedLibrary() {
@@ -707,29 +558,15 @@
       return;
     }
 
-    const platform = $('searchPlatform').value || 'all';
-    if (isUsing74520()) {
-      showCollection(`搜索：${q}`, '正在 74520 全网检索无损乐库...', platform === 'all' ? '全网搜索' : platform, '', []);
-      const params = new URLSearchParams({ q, platform, limit: '25' });
-      const res = await api.apiRequest({ path: `/api/music/search?${params.toString()}` });
-      if (!res.ok || !res.data) {
-        toast((res.data && res.data.detail) || '搜索失败', 'error');
-        return;
-      }
-      const items = (res.data.data && res.data.data.items) || [];
-      showCollection(`“${q}” 的搜索结果`, `共找到 ${items.length} 首歌曲 · 默认优先 SQ 无损 FLAC`, '74520 全网源', items[0]?.cover || '', items);
-      return;
-    }
-
     // Default: Public No-Login Lossless Search
-    showCollection(`搜索：${q}`, '正在免登检索无损曲库...', '免登无损', '', []);
+    showCollection(`搜索：${q}`, '正在检索无损曲库...', 'SQ 无损曲库', '', []);
     const res = await api.publicSearch({ query: q, count: 25 });
     if (!res.ok || !Array.isArray(res.data)) {
       toast(res.error || '搜索失败，请重试', 'error');
       return;
     }
     const items = res.data;
-    showCollection(`“${q}” 的搜索结果`, `共找到 ${items.length} 首歌曲 · 免登直出 SQ 无损 FLAC`, '免登无损曲库', items[0]?.cover || '', items);
+    showCollection(`“${q}” 的搜索结果`, `共找到 ${items.length} 首歌曲 · 优先 SQ 无损 FLAC`, 'SQ 无损曲库', items[0]?.cover || '', items);
   }
 
   function showCollection(title, desc, tag, cover, items) {
@@ -1478,13 +1315,6 @@
       if (e.key === 'Enter') runSearch($('searchInput').value);
     });
 
-    $('authPillBtn').onclick = openEngineModal;
-    $('closeAuthModal').onclick = () => $('authModal').classList.add('hidden');
-    api.onAuthChanged((d) => {
-      applyAuthData(d);
-      if (d && d.authenticated) toast('74520 扩展源登录成功，已自动切换', 'success');
-    });
-
     $('heroPlayAllBtn').onclick = () => {
       if (state.discover.homeTracks.length) playFromList(state.discover.homeTracks, 0);
       else if (state.localTracks.length) playFromList(state.localTracks, 0);
@@ -1678,10 +1508,8 @@
       }
     });
 
-    ['qualityModal', 'authModal'].forEach((id) => {
-      $(id).addEventListener('click', (e) => {
-        if (e.target === $(id)) $(id).classList.add('hidden');
-      });
+    $('qualityModal').addEventListener('click', (e) => {
+      if (e.target === $('qualityModal')) $('qualityModal').classList.add('hidden');
     });
   }
 
@@ -1718,16 +1546,6 @@
     if (state.settings.heroImage) applyHeroBackground(state.settings.heroImage);
     renderLocalTracks();
     loadLocalSavedLibrary();
-    updateEnginePillUI();
-
-    // Immediately load public no-login playlists & charts!
-    if (state.engine === 'site74520') {
-      await checkSite74520AuthSilently();
-      await loadUserLibrary();
-    } else {
-      // Silently check 74520 login state in background without blocking
-      checkSite74520AuthSilently().catch(() => {});
-    }
     await loadDiscoverHome();
   }
 

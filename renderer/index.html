@@ -34,16 +34,10 @@
 
       <div class="topbar-center no-drag">
         <div class="search-capsule">
-          <select id="searchPlatform" class="platform-select" title="选择音源平台">
-            <option value="all">全网</option>
-            <option value="qqmusic">QQ</option>
-            <option value="neteasemusic">网易云</option>
-            <option value="kugou">酷狗</option>
-          </select>
           <input
             id="searchInput"
             type="text"
-            placeholder="搜歌名 / 歌手，或粘贴 QQ / 网易云歌单链接..."
+            placeholder="搜歌名 / 歌手，或粘贴网易云歌单链接..."
             autocomplete="off"
           />
           <button id="searchBtn" class="search-go" title="搜索">
@@ -56,11 +50,6 @@
       </div>
 
       <div class="topbar-right no-drag">
-        <button id="authPillBtn" class="auth-pill signed-in" title="音源切换与账号设置">
-          <span class="auth-dot"></span>
-          <span id="authPillText">免登无损</span>
-        </button>
-
         <div class="win-controls">
           <button class="win-btn" id="winMinBtn" title="最小化">
             <svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="7.5" width="10" height="1.4" rx="0.7"/></svg>
@@ -243,11 +232,6 @@
       <section class="view-section" id="view-playlists">
         <div class="section-head">
           <h2 class="section-title">精选歌单广场</h2>
-          <div class="filter-pills" id="playlistSourceFilters">
-            <button class="f-pill active" data-source="all">全网</button>
-            <button class="f-pill" data-source="neteasemusic">网易云</button>
-            <button class="f-pill" data-source="qqmusic">QQ 音乐</button>
-          </div>
         </div>
         <div class="category-bar" id="playlistCategories"></div>
         <div class="playlist-grid playlist-grid-lg" id="allPlaylistsGrid"></div>
@@ -430,17 +414,6 @@
       </div>
       <p class="modal-sub" id="qualityModalSub"></p>
       <div class="quality-options" id="qualityOptions"></div>
-    </div>
-  </div>
-
-  <!-- Engine & Account Modal -->
-  <div class="modal-mask hidden" id="authModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>音源切换与扩展账号</h3>
-        <button class="modal-close" id="closeAuthModal">×</button>
-      </div>
-      <div id="authModalBody"></div>
     </div>
   </div>
 
