@@ -2,6 +2,38 @@
 
 一款开箱即用、免登录的全平台 **Windows + macOS + Android + iOS** 无损音乐播放器，支持 **SQ 无损 FLAC** 在线畅听、同步滚动歌词与一键无损下载。
 
+## 界面预览
+
+### 手机端（Android / iOS）
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/mobile-home.png" width="290" alt="手机端首页" />
+      <br /><sub><b>首页 · 潮流黑胶拼贴 & 快捷入口</b></sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/mobile-immersive.png" width="290" alt="手机端沉浸黑胶歌词页" />
+      <br /><sub><b>沉浸播放 · SQ 无损 FLAC & 同步滚动歌词</b></sub>
+    </td>
+  </tr>
+</table>
+
+### 电脑端（Windows / macOS）
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/desktop-home.png" width="440" alt="电脑端首页" />
+      <br /><sub><b>桌面首页 · 精选歌单 & 实时搜歌</b></sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/desktop-immersive.png" width="440" alt="电脑端沉浸黑胶页" />
+      <br /><sub><b>沉浸播放 · 仿真黑胶唱臂 & 实时频谱</b></sub>
+    </td>
+  </tr>
+</table>
+
 ## 核心特性
 
 - **四端全覆盖**：
