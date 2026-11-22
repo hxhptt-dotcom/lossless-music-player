@@ -80,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public boolean downloadAudio(String url, String fileName, String title) {
             try {
-                String safeName = fileName.replaceAll("[<>:\"/\\\\|?*\\x00-\\x1f]", "_").trim();
-                if (safeName.isEmpty()) safeName = "lossless_audio.flac";
+                String rawSafe = fileName.replaceAll("[<>:\"/\\\\|?*\\x00-\\x1f]", "_").trim();
+                final String safeName = rawSafe.isEmpty() ? "lossless_audio.flac" : rawSafe;
                 DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
                 if (dm == null) return false;
 
