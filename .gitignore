@@ -2,6 +2,8 @@ node_modules/
 dist/
 *.exe
 *.apk
+*.ipa
+*.dmg
 UI.png
 地址.txt
 .DS_Store
@@ -11,3 +13,5 @@ android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
+ios/*.xcodeproj/
+ios/build/

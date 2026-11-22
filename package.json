@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --win portable --x64",
-    "build": "electron-builder --win portable --x64"
+    "build": "electron-builder --win portable --x64",
+    "build:mac": "electron-builder --mac dmg --arm64 --x64"
   },
   "build": {
     "appId": "com.lossless.musicplayer",
@@ -37,6 +38,21 @@
     },
     "portable": {
       "artifactName": "无损音乐播放器.exe"
+    },
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "assets/icon.png",
+      "identity": null,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "LosslessMusicPlayer-v${version}-mac-${arch}.dmg"
     }
   },
   "devDependencies": {

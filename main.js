@@ -1066,9 +1066,12 @@ app.whenReady().then(async () => {
   });
 });
 
-app.on('window-all-closed', () => {
+app.on('before-quit', () => {
   if (proxyServer) {
     try { proxyServer.close(); } catch {}
   }
+});
+
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

@@ -1,0 +1,108 @@
+name: Build Apple (iOS IPA & macOS DMG)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ios/**'
+      - 'main.js'
+      - 'preload.js'
+      - 'renderer/**'
+      - 'package.json'
+      - '.github/workflows/build-apple.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ios-ipa:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Build Unsigned iOS Release App
+        working-directory: ios
+        run: |
+          xcodebuild \
+            -project LosslessMusicPlayer.xcodeproj \
+            -scheme LosslessMusicPlayer \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package Unsigned IPA
+        run: |
+          APP_PATH="ios/build/Build/Products/Release-iphoneos/LosslessMusicPlayer.app"
+          test -d "$APP_PATH"
+          mkdir -p ipa_stage/Payload
+          cp -R "$APP_PATH" ipa_stage/Payload/
+          (cd ipa_stage && zip -r -y ../LosslessMusicPlayer-v1.0.0-ios-unsigned.ipa Payload)
+          ls -lh LosslessMusicPlayer-v1.0.0-ios-unsigned.ipa
+
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-ios-ipa
+          path: LosslessMusicPlayer-v1.0.0-ios-unsigned.ipa
+
+  build-macos-dmg:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build macOS DMG (arm64 & x64)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm run build:mac
+          ls -lh dist/*.dmg
+
+      - name: Upload macOS DMG Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-macos-dmg
+          path: dist/LosslessMusicPlayer-v1.0.0-mac-*.dmg
+
+  publish-release:
+    needs: [ build-ios-ipa, build-macos-dmg ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all Apple artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
+        run: ls -lh release-assets/
+
+      - name: Attach iOS IPA and macOS DMGs to Release v1.0.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          files: release-assets/*
