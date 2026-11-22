@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.exe
+UI.png
+地址.txt
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>无损音乐播放器</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="ambient-canvas" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <!-- Custom PC Titlebar & Top Navigation -->
+    <header class="topbar">
+      <div class="topbar-left no-drag">
+        <div class="brand" id="brandHomeBtn" title="返回首页">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">音乐</span>
+            <span class="brand-badge">FLAC</span>
+          </div>
+        </div>
+
+        <nav class="main-nav" id="mainNav">
+          <button class="nav-pill active" data-view="home">推荐</button>
+          <button class="nav-pill" data-view="playlists">歌单</button>
+          <button class="nav-pill" data-view="charts">排行榜</button>
+          <button class="nav-pill" data-view="library">我的</button>
+          <button class="nav-pill" data-view="local">本地无损</button>
+        </nav>
+      </div>
+
+      <div class="topbar-center no-drag">
+        <div class="search-capsule">
+          <select id="searchPlatform" class="platform-select" title="选择音源平台">
+            <option value="all">全网</option>
+            <option value="qqmusic">QQ</option>
+            <option value="neteasemusic">网易云</option>
+            <option value="kugou">酷狗</option>
+          </select>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="搜歌名 / 歌手，或粘贴 QQ / 网易云歌单链接..."
+            autocomplete="off"
+          />
+          <button id="searchBtn" class="search-go" title="搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="20" y1="20" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="topbar-right no-drag">
+        <button id="authPillBtn" class="auth-pill signed-in" title="音源切换与账号设置">
+          <span class="auth-dot"></span>
+          <span id="authPillText">免登无损</span>
+        </button>
+
+        <div class="win-controls">
+          <button class="win-btn" id="winMinBtn" title="最小化">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="7.5" width="10" height="1.4" rx="0.7"/></svg>
+          </button>
+          <button class="win-btn" id="winMaxBtn" title="最大化 / 还原">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9" rx="1.6"/></svg>
+          </button>
+          <button class="win-btn win-close" id="winCloseBtn" title="关闭">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="main-scroll" id="mainScroll">
+      <!-- VIEW: HOME (UI.png Inspired Desktop Collage Layout) -->
+      <section class="view-section active" id="view-home">
+        <!-- Hero Collage Card -->
+        <div class="hero-collage" id="heroCollage">
+          <div class="hero-bg-photo" id="heroBgPhoto"></div>
+          <div class="hero-torn-paper"></div>
+          <div class="hero-pink-splash"></div>
+
+          <!-- Decorative Yellow Waveform Tape -->
+          <div class="sticker-wave-tape" aria-hidden="true">
+            <div class="tape-bars">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- Decorative Crown & Heart Bubble -->
+          <div class="sticker-heart-bubble" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 20s-6.5-4.3-8.5-8A5 5 0 0 1 12 6.8 5 5 0 0 1 20.5 12C18.5 15.7 12 20 12 20z"/>
+            </svg>
+          </div>
+
+          <div class="hero-left">
+            <div class="hero-kicker">HI-RES · SQ LOSSLESS STUDIO</div>
+            <div class="hero-wordmark">MUSIC</div>
+            <div class="hero-slogan">好音乐，陪你每一刻</div>
+            <div class="hero-sub">全网无损 FLAC 极速直连 · 逐字滚动歌词 · 一键本地珍藏</div>
+            <div class="hero-actions">
+              <button class="btn-pink btn-lg" id="heroPlayAllBtn">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+                <span>立即开听</span>
+              </button>
+              <button class="btn-glass" id="changeHeroBgBtn" title="自定义主视觉背景图">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                  <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5L5 19"/>
+                </svg>
+                <span>换主视觉</span>
+              </button>
+              <button class="btn-glass hidden" id="resetHeroBgBtn" title="恢复默认背景">重置</button>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="hero-vinyl-stage" id="heroVinylStage" title="点击进入沉浸黑胶歌词页">
+              <div class="vinyl-disc" id="heroVinylDisc">
+                <div class="vinyl-grooves"></div>
+                <div class="vinyl-label">
+                  <img id="heroVinylCover" class="hidden" alt="" />
+                  <div class="vinyl-label-fallback" id="heroVinylFallback">
+                    <span>SQ</span>
+                  </div>
+                </div>
+                <div class="vinyl-hole"></div>
+              </div>
+            </div>
+
+            <!-- UI.png Signature Floating Play Controls Pill -->
+            <div class="hero-transport-pill">
+              <button class="ht-side" id="heroPrevBtn" title="上一首">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              <button class="ht-play" id="heroPlayBtn" title="播放 / 暂停">
+                <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+              </button>
+              <button class="ht-side" id="heroNextBtn" title="下一首">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6-Color Rounded Quick Action Tiles (Exact UI.png palette) -->
+        <div class="quick-tiles">
+          <button class="q-tile tile-pink" data-quick="favorites">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20.5s-7-4.5-9-8.5A5.4 5.4 0 0 1 12 6.5 5.4 5.4 0 0 1 21 12c-2 4-9 8.5-9 8.5z"/></svg>
+            </span>
+            <span class="q-label">我喜欢</span>
+          </button>
+          <button class="q-tile tile-orange" data-quick="charts">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2.5c.8 3.2-1.8 5.2-1.8 7.5 0 1.4 1 2.5 2.3 2.5 1.8 0 2.9-1.7 2.8-3.8 2.4 1.9 3.7 4.7 3.2 7.8-.6 3.5-3.9 5.5-7.8 5.5-4.4 0-7.7-3-7.7-7.2 0-3.5 2.4-6.4 5.1-8.4 1.4-1 2.9-2.2 3.9-3.9z"/></svg>
+            </span>
+            <span class="q-label">热歌飙升</span>
+          </button>
+          <button class="q-tile tile-indigo" data-quick="playlists">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h12v2H3V6zm0 4h12v2H3v-2zm0 4h8v2H3v-2zm14-4v6.2a2.5 2.5 0 1 0 1.8 2.4V12h3v-2h-4.8z"/></svg>
+            </span>
+            <span class="q-label">精选歌单</span>
+          </button>
+          <button class="q-tile tile-cyan" data-quick="roam">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+                <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 0 0 13M18.5 5.5a9 9 0 0 1 0 13"/>
+              </svg>
+            </span>
+            <span class="q-label">随心漫游</span>
+          </button>
+          <button class="q-tile tile-purple" data-quick="history">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/></svg>
+            </span>
+            <span class="q-label">最近播放</span>
+          </button>
+          <button class="q-tile tile-green" data-quick="downloads">
+            <span class="q-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4v11m0 0l-4-4m4 4l4-4M4 18h16"/>
+              </svg>
+            </span>
+            <span class="q-label">无损下载</span>
+          </button>
+        </div>
+
+        <!-- Curated Playlists Strip -->
+        <div class="section-block">
+          <div class="section-head">
+            <h2 class="section-title">精选歌单</h2>
+            <button class="section-more" data-goto="playlists">查看全部 ›</button>
+          </div>
+          <div class="playlist-grid" id="homePlaylistsGrid">
+            <div class="empty-card">正在加载热门精选歌单...</div>
+          </div>
+        </div>
+
+        <!-- Lower Split: Left Waveform Track List + Right Hot Hits Vinyl Card -->
+        <div class="home-split">
+          <div class="section-block split-left">
+            <div class="section-head">
+              <h2 class="section-title" id="homeTracksHeading">新歌推荐</h2>
+              <button class="section-more" id="homePlayAllTracksBtn">播放全部 ›</button>
+            </div>
+            <div class="wave-track-list" id="homeTracksList">
+              <div class="empty-card">正在加载最新无损单曲...</div>
+            </div>
+          </div>
+
+          <aside class="hot-hits-card">
+            <div class="hh-dots"></div>
+            <div class="hh-vinyl">
+              <div class="hh-vinyl-core"></div>
+            </div>
+            <div class="hh-sticker-badge">Hot Hits</div>
+            <div class="hh-content">
+              <div class="hh-title">热歌风向标</div>
+              <div class="hh-sub" id="hotHitsSubtitle">全网高热度无损单曲</div>
+              <ol class="hh-list" id="hotHitsList">
+                <li class="hh-empty">正在同步官方热歌榜...</li>
+              </ol>
+              <button class="btn-pink btn-sm hh-open-btn" data-goto="charts">打开全部排行榜</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- VIEW: PLAYLISTS -->
+      <section class="view-section" id="view-playlists">
+        <div class="section-head">
+          <h2 class="section-title">精选歌单广场</h2>
+          <div class="filter-pills" id="playlistSourceFilters">
+            <button class="f-pill active" data-source="all">全网</button>
+            <button class="f-pill" data-source="neteasemusic">网易云</button>
+            <button class="f-pill" data-source="qqmusic">QQ 音乐</button>
+          </div>
+        </div>
+        <div class="category-bar" id="playlistCategories"></div>
+        <div class="playlist-grid playlist-grid-lg" id="allPlaylistsGrid"></div>
+      </section>
+
+      <!-- VIEW: CHARTS -->
+      <section class="view-section" id="view-charts">
+        <div class="section-head">
+          <h2 class="section-title">官方排行榜</h2>
+          <button class="btn-pink btn-sm" id="playCurrentChartBtn">播放整榜</button>
+        </div>
+        <div class="chart-tabs" id="chartTabsBar"></div>
+        <div class="wave-track-list" id="chartTracksList"></div>
+      </section>
+
+      <!-- VIEW: COLLECTION DETAIL (Playlist / Search / Chart detail) -->
+      <section class="view-section" id="view-collection">
+        <div class="collection-header">
+          <button class="btn-glass btn-sm" id="collectionBackBtn">← 返回</button>
+          <img id="collectionCover" class="collection-cover hidden" alt="" />
+          <div class="collection-meta">
+            <div class="collection-tag" id="collectionTag">歌曲列表</div>
+            <h2 id="collectionTitle">搜索结果</h2>
+            <p id="collectionDesc"></p>
+            <div class="collection-actions">
+              <button class="btn-pink btn-sm" id="collectionPlayAllBtn">播放全部</button>
+            </div>
+          </div>
+        </div>
+        <div class="wave-track-list" id="collectionTracksList"></div>
+      </section>
+
+      <!-- VIEW: LIBRARY (Favorites / User Playlists / History / Downloads) -->
+      <section class="view-section" id="view-library">
+        <div class="section-head">
+          <h2 class="section-title">我的乐库</h2>
+          <div class="filter-pills" id="librarySubTabs">
+            <button class="f-pill active" data-lib="favorites">我喜欢 <span id="favCountBadge">0</span></button>
+            <button class="f-pill" data-lib="history">最近播放</button>
+            <button class="f-pill" data-lib="downloads">无损下载 <span id="dlCountBadge">0</span></button>
+          </div>
+        </div>
+        <div class="library-toolbar hidden" id="downloadsToolbar">
+          <div class="dl-dir-info">保存位置：<code id="downloadDirText"></code></div>
+          <div class="dl-dir-actions">
+            <button class="btn-glass btn-sm" id="changeDownloadDirBtn">更改目录</button>
+            <button class="btn-glass btn-sm" id="openDownloadDirBtn">打开文件夹</button>
+          </div>
+        </div>
+        <div id="activeDownloadsArea" class="active-dl-area hidden"></div>
+        <div class="wave-track-list" id="libraryTracksList"></div>
+      </section>
+
+      <!-- VIEW: LOCAL LOSSLESS -->
+      <section class="view-section" id="view-local">
+        <div class="section-head">
+          <h2 class="section-title">本地无损音乐</h2>
+          <div class="local-actions">
+            <button class="btn-pink btn-sm" id="importFilesBtn">+ 导入音频文件</button>
+            <button class="btn-glass btn-sm" id="importFolderBtn">扫描文件夹</button>
+            <button class="btn-glass btn-sm" id="playAllLocalBtn">播放全部</button>
+          </div>
+        </div>
+        <p class="view-hint">直接解码播放本机 FLAC / WAV / MP3 / M4A / OGG，无需联网登录，也支持实时波形与黑胶播放页。</p>
+        <div class="wave-track-list" id="localTracksList"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Bottom Dark Glass Floating Player Dock (Signature UI.png Footer) -->
+  <footer class="player-dock">
+      <div class="dock-left" id="openImmersiveBtn" title="点击打开黑胶歌词沉浸页">
+        <div class="dock-cover-wrap">
+          <img id="dockCover" class="hidden" alt="" />
+          <div class="dock-cover-fallback" id="dockCoverFallback">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+          </div>
+        </div>
+        <div class="dock-info">
+          <div class="dock-title-row">
+            <span class="dock-title" id="dockTitle">好音乐，陪你每一刻</span>
+            <button class="quality-badge" id="qualitySwitchBtn" title="点击切换播放音质">SQ 无损</button>
+          </div>
+          <div class="dock-sub">
+            <span id="dockArtist">搜索全网或导入本地 FLAC 开始聆听</span>
+            <span class="dock-time"><span id="curTime">00:00</span> / <span id="durTime">00:00</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dock-center">
+        <div class="progress-wrap" id="progressBar">
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dock-right">
+        <button class="dock-icon-btn" id="dockLikeBtn" title="喜欢">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.5s-7-4.5-9-8.5A5.4 5.4 0 0 1 12 6.5 5.4 5.4 0 0 1 21 12c-2 4-9 8.5-9 8.5z"/></svg>
+        </button>
+        <button class="dock-icon-btn" id="dockPrevBtn" title="上一首">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button class="dock-play-btn" id="dockPlayBtn" title="播放 / 暂停 (空格)">
+          <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="icon-pause hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button class="dock-icon-btn" id="dockNextBtn" title="下一首">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+        <button class="dock-icon-btn" id="dockModeBtn" title="顺序播放">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+        <button class="dock-icon-btn" id="dockDownloadBtn" title="下载当前无损单曲">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
+        </button>
+        <div class="volume-box" title="音量">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+          </svg>
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.85" />
+        </div>
+        <button class="dock-icon-btn dock-queue-btn" id="dockQueueBtn" title="播放队列">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h14v2H3V6zm0 5h14v2H3v-2zm0 5h10v2H3v-2zm16-5v7.5a2 2 0 1 0 1.5 1.9V13h2.5v-2H19z"/></svg>
+          <span class="queue-count" id="queueCount">0</span>
+        </button>
+      </div>
+    </footer>
+
+  <!-- Immersive Vinyl & Scrolling Lyrics Overlay -->
+  <div class="immersive-overlay hidden" id="immersiveOverlay">
+    <div class="imm-backdrop" id="immBackdrop"></div>
+    <div class="imm-top">
+      <button class="imm-close" id="closeImmersiveBtn">↓ 收起播放页</button>
+      <div class="imm-quality-tag" id="immQualityTag">SQ 无损 FLAC</div>
+    </div>
+    <div class="imm-body">
+      <div class="imm-left">
+        <div class="imm-vinyl-wrap">
+          <div class="imm-tonearm" id="immTonearm"></div>
+          <div class="imm-vinyl" id="immVinyl">
+            <div class="imm-vinyl-grooves"></div>
+            <img id="immCover" class="hidden" alt="" />
+            <div class="imm-cover-fallback" id="immCoverFallback">MUSIC</div>
+            <div class="imm-spindle"></div>
+          </div>
+        </div>
+        <div class="imm-meta">
+          <h2 id="immTitle">未在播放</h2>
+          <p id="immArtist">--</p>
+        </div>
+        <canvas id="immVisualizer" width="360" height="56"></canvas>
+      </div>
+      <div class="imm-right">
+        <div class="imm-lyrics" id="immLyrics">
+          <div class="lyric-empty">暂无歌词</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue Drawer -->
+  <aside class="queue-drawer hidden" id="queueDrawer">
+    <div class="drawer-head">
+      <h3>当前播放队列 <span id="drawerQueueTotal">0 首</span></h3>
+      <button class="btn-glass btn-sm" id="clearQueueBtn">清空</button>
+    </div>
+    <div class="drawer-list" id="drawerQueueList"></div>
+  </aside>
+
+  <!-- Quality Picker Modal (for playback or download) -->
+  <div class="modal-mask hidden" id="qualityModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="qualityModalTitle">选择无损音质</h3>
+        <button class="modal-close" id="closeQualityModal">×</button>
+      </div>
+      <p class="modal-sub" id="qualityModalSub"></p>
+      <div class="quality-options" id="qualityOptions"></div>
+    </div>
+  </div>
+
+  <!-- Engine & Account Modal -->
+  <div class="modal-mask hidden" id="authModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>音源切换与扩展账号</h3>
+        <button class="modal-close" id="closeAuthModal">×</button>
+      </div>
+      <div id="authModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div class="toast-stack" id="toastStack"></div>
+
+  <audio id="audioEngine" crossorigin="anonymous" preload="auto"></audio>
+  <script src="./app.js"></script>
+</body>
+</html>
