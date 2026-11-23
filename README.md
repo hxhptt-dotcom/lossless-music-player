@@ -58,3 +58,9 @@
 
 - **Windows / macOS**：`npm install` 后执行 `npm start`（开发）、`npm run build`（Win EXE）或 `npm run build:mac`（Mac DMG）。
 - **Android / iOS**：已配置 GitHub Actions（`.github/workflows/build-android.yml` 与 `.github/workflows/build-apple.yml`），推送至 `main` 自动编译并同步发布到 Releases。
+
+## 致谢与声明
+
+- **特别致谢**：本项目的创意、界面风格灵感及最初思路均源自 **LINUX DO（L 站）** 社区大佬的分享，向原作者表示诚挚感谢！
+  - 原贴地址：[https://linux.do/t/topic/3218803](https://linux.do/t/topic/3218803)
+- **开源与免责声明**：本项目仅用于个人技术学习、跨平台客户端封装与交流分享，不存储任何音频文件，亦不用于任何商业用途；如有侵权或原作者有下架/署名修改要求，请随时联系处理。
